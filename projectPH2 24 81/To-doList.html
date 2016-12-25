@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>TO DO LIST</title>
+
+    
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.0.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+
+
+
+<script>
+var task = {
+      name: "",
+      id: 0,
+      desciption: "",
+      date: "",
+      status: ""
+    }
+
+
+    var task = function task(id, name, date, des) { //constructor
+      this.id = id;
+      this.name = name;
+      this.date = date;
+      this.desciption = des;
+    }
+
+    var allTasksArray = [];
+    var x = new task(0, " All TASKS", "", "");
+    allTasksArray[0] = x;
+    var inprogressArray = [];
+    var x = new task(0, " IN PROGRESS", "", "");;
+    inprogressArray[0] = x;
+    var completedArray = [];
+    var x = new task(0, " COMPLETED", "", "");
+    completedArray[0] = x;
+    var archivedArray = [];
+    var x = new task(0, " ARCHIVED", "", "");
+    archivedArray[0] = x;
+    var edit = false;
+    var idbutton = 9500;
+    var idtask = 1;
+    var state="allTasks";
+    var rowindex;
+	
+  
+  $(document).ready(function(){
+    $.ajax({
+        type: "POST",
+        url: '/create',
+         success: function(data) {
+           if(data.allTasksArray!=""){
+             allTasksArray=data.allTasksArray;
+           }
+           if(data.inprogressArray!=""){
+             inprogressArray=data.inprogressArray;
+           }
+           if(data.completedArray!=""){
+             completedArray=data.completedArray;
+           }
+           if(data.archivedArray!=""){
+             archivedArray=data.archivedArray;
+                  }
+           if(data.idbutton!=""){
+            idbutton=data.idbutton;
+           }
+           if(data.idtask!=""){
+            idtask=data.idtask;
+           } 
+           if(data.state!=""){
+            state=data.state;
+           }      
+
+
+      start(state);
+      document.getElementById("no1").innerHTML=allTasksArray.length-1;
+      document.getElementById("no2").innerHTML=inprogressArray.length-1;
+      document.getElementById("no3").innerHTML=completedArray.length-1;
+      document.getElementById("no4").innerHTML=archivedArray.length-1;
+      document.getElementById("test").innerHTML="welcome "+data.name+"  ";
+                        }
+
+    })
+
+});
+
+	function redrawingtable(array) {
+      var theTable = "<table>"
+      theTable += "<th>";
+      theTable += "<td><b>" + array[0].name + "</b></td>";
+      theTable += "<td><b>DUE DATE</b></td>";
+      theTable += "<td></td>";
+      theTable += "</th>";
+
+      for (var i = 1; i < array.length; i++) {
+
+        theTable += "<tr onmouseover='$(\"#button_" + idbutton + "\").parent(\".dropdown\").show();' onmouseout='$(\"#button_" + idbutton + "\").parent(\".dropdown\").hide();' >";
+        theTable += "<td><input type=\"checkbox\" class=\"basic-kpi-row\"/></td>";
+
+        if (array[i].status == 'c' && array[0].name === allTasksArray[0].name) {
+
+          theTable += "<td data-toggle=\"tooltip\" data-html=\"true\" title=\"" + array[i].desciption + "\"><strike> " + array[i].name + "</strike></td>";
+
+        } else {
+          
+          theTable += "<td data-toggle=\"tooltip\" data-html=\"true\" title=\"" + array[i].desciption + "\">" + array[i].name + "</td>";
+        }
+        theTable += "<td>" + array[i].date + "</td>";
+
+
+if(array[i].status=='c' && array[0].name === allTasksArray[0].name){
+theTable += "<td> <div class=\"dropdown\"><button float=\"right\" class=\"btn btn-sm dropdown-toggle\" type=\"button\" id=\"button_" + idbutton +
+ "\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"true\" onclick = \"getid(this.id)\" >Options <span class=\"caret\"></span></button><ul class=\"dropdown-menu\" aria-labelledby=\"dropdownMenu1\"><li id=\"a\" class=\"clickMe\" onmousedown=\"list(id);ajaxsubmit()\" ><a href=\"#\">Archieve</a></li><li id=\"b\" class=\"clickMe\"   data-toggle=\"modal\" data-target=\"#myModal\" onmousedown=\"list(id);ajaxsubmit()\" ><a href=\"#\">Edit</a></li><li id=\"c\" class=\"clickMe\" onmousedown=\"list(id);ajaxsubmit()\"><a href=\"#\">Delete</a></li></ul></div></td>";
+
+
+}
+
+
+else{
+
+        if (array[0].name == allTasksArray[0].name || array[0].name === inprogressArray[0].name) {
+
+          theTable += "<td> <div class=\"dropdown\"><button float=\"right\" class=\"btn btn-sm dropdown-toggle\" type=\"button\" id=\"button_" + idbutton +
+            "\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"true\" onclick = \"getid(this.id)\" >Options <span class=\"caret\"></span></button><ul class=\"dropdown-menu\" aria-labelledby=\"dropdownMenu1\"><li id=\"a\" class=\"clickMe\" onmousedown=\"list(id);ajaxsubmit()\" ><a href=\"#\">Archieve</a></li><li id=\"b\" class=\"clickMe\"   data-toggle=\"modal\" data-target=\"#myModal\" onmousedown=\"list(id);ajaxsubmit()\" ><a href=\"#\">Edit</a></li><li id=\"c\" class=\"clickMe\" onmousedown=\"list(id);ajaxsubmit()\"><a href=\"#\">Delete</a></li><li id=\"d\" class=\"clickMe\" onmousedown=\"list(id);ajaxsubmit()\"><a href=\"#\">Mark as Done</a></li></ul></div></td>";
+
+
+        }
+       else if (array[0].name == completedArray[0].name) {
+
+          theTable += "<td> <div class=\"dropdown\"><button float=\"right\" class=\"btn btn-sm dropdown-toggle\" type=\"button\" id=\"button_" + idbutton +
+            "\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"true\" onclick = \"getid(this.id)\" >Options <span class=\"caret\"></span></button><ul class=\"dropdown-menu\" aria-labelledby=\"dropdownMenu1\"><li id=\"a\" class=\"clickMe\" onmousedown=\"list(id);ajaxsubmit()\" ><a href=\"#\">Archieve</a></li><li id=\"b\" class=\"clickMe\"   data-toggle=\"modal\" data-target=\"#myModal\" onmousedown=\"list(id);ajaxsubmit()\" ><a href=\"#\">Edit</a></li><li id=\"c\" class=\"clickMe\" onmousedown=\"list(id);ajaxsubmit()\"><a href=\"#\">Delete</a></li></ul></div></td>";
+
+
+        }
+
+       else if (array[0].name == archivedArray[0].name) {
+
+          theTable += "<td> <div class=\"dropdown\"><button float=\"right\" class=\"btn btn-sm dropdown-toggle\" type=\"button\" id=\"button_" + idbutton +
+            "\" data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"true\" onclick = \"getid(this.id)\" >Options <span class=\"caret\"></span></button><ul class=\"dropdown-menu\" aria-labelledby=\"dropdownMenu1\"><li id=\"b\" class=\"clickMe\"  data-toggle=\"modal\" data-target=\"#myModal\" onmousedown=\"list(id);ajaxsubmit()\" ><a href=\"#\">Edit</a></li><li id=\"c\" class=\"clickMe\"  onmousedown=\"list(id);ajaxsubmit()\"><a href=\"#\">Delete</a></li></ul></div></td>";
+        }
+      }
+        idbutton++;
+        theTable += "</tr>";
+      }
+
+      theTable += "</table>";
+      document.getElementById("mytable").innerHTML = theTable;
+    }
+	
+	
+	
+	   function fillingArrays(id) {
+      if (id == 'demo2' && edit == false) {
+        var element = document.getElementById("inputEmail").value;
+        document.getElementById("inputEmail").value = "";
+        var date = document.getElementById("datepicker").value;
+        document.getElementById("datepicker").value = "";
+        var desciption = document.getElementById("textArea").value;
+
+        document.getElementById("textArea").value = "";
+        
+		if(element==""){
+		window.alert("You must enter a task with a name");	
+			if(state=="allTasks"){
+				redrawingtable(allTasksArray);
+			}
+		     else if(state=="inProgress"){
+				 redrawingtable(inprogressArray);
+			 }
+		      else if (state=="completed"){
+				  redrawingtable(completedArray);
+			  }
+			  else if(state=="archived"){
+				  redrawingtable(archivedArray);
+			  }
+		
+		}
+       else {
+          var x = new task(idtask, element, date, desciption);
+          x.status = 'p';
+
+          idtask++;
+
+          allTasksArray.push(x);
+          //console.log(idtask);
+        //  counterAlltasks++;
+          document.getElementById("no1").innerHTML = allTasksArray.length-1;
+          inprogressArray.push(x);
+         // counterInprogress++;
+          document.getElementById("no2").innerHTML = inprogressArray.length-1;
+
+        
+       state="allTasks";
+        redrawingtable(allTasksArray);
+        edit = false;
+}
+
+
+      } else if (id == 'demo2' && edit == true) {
+
+        var element = document.getElementById("inputEmail").value;
+        document.getElementById("inputEmail").value = "";
+        var date = document.getElementById("datepicker").value;
+        document.getElementById("datepicker").value = "";
+        var desciption = document.getElementById("textArea").value;
+        document.getElementById("textArea").value = "";
+
+		if(element==""){
+		window.alert("You can't unname a task");	
+			if(state=="allTasks"){
+				redrawingtable(allTasksArray);
+			}
+		     else if(state=="inProgress"){
+				 redrawingtable(inprogressArray);
+			 }
+		      else if (state=="completed"){
+				  redrawingtable(completedArray);
+			  }
+			  else if(state=="archived"){
+				  redrawingtable(archivedArray);
+			  }
+		
+		}else{
+		
+		
+		
+		
+        if (state == "allTasks") {
+
+        if (element != "") {
+          var y = allTasksArray[rowindex].id;
+         var u=allTasksArray[rowindex].status;
+          for (var i = 1; i < inprogressArray.length; i++) {
+            if (allTasksArray[rowindex].id == inprogressArray[i].id) {
+              inprogressArray[i] = new task(y, element, date, desciption);
+              inprogressArray[i].status= u;
+              break;
+            }
+          }
+
+
+          for (var i = 1; i < completedArray.length; i++) {
+            if (allTasksArray[rowindex].id == completedArray[i].id) {
+              completedArray[i] = new task(y, element, date, desciption);
+              completedArray[i].status=u;
+              break;
+            }
+          }
+
+          allTasksArray[rowindex] = new task(y, element, date, desciption);
+          allTasksArray[rowindex].status=u;
+        }
+          redrawingtable(allTasksArray); ///3la 7sb kan wa2f fen
+        } 
+        else if (state == "inProgress") {
+          if (element != "") {
+          var y = inprogressArray[rowindex].id;
+          var u=inprogressArray[rowindex].status;
+          for (var i = 1; i < allTasksArray.length; i++) {
+            if (inprogressArray[rowindex].id == allTasksArray[i].id) {
+              allTasksArray[i] = new task(y, element, date, desciption);
+              allTasksArray[i].status=u;
+              break;
+            }
+          }
+          inprogressArray[rowindex] = new task(y, element, date, desciption);
+          inprogressArray[rowindex].status=u;
+        }
+          redrawingtable(inprogressArray);
+        }
+         else if (state == "completed") {
+if (element != "") {
+          var y = completedArray[rowindex].id;
+          var u=completedArray[rowindex].status;
+          for (var i = 1; i < allTasksArray.length; i++) {
+            if (completedArray[rowindex].id == allTasksArray[i].id) {
+              allTasksArray[i] = new task(y, element, date, desciption);
+              allTasksArray[i].status = 'c';
+              break;
+            }
+          }
+          completedArray[rowindex] = new task(y, element, date, desciption);
+          completedArray[rowindex].status='c';
+        }
+          redrawingtable(completedArray);
+
+        }
+         else if (state == "archived") {
+          if (element != "") {
+         var y= archivedArray[rowindex].id;
+         var u=archivedArray[rowindex].status;
+          archivedArray[rowindex] = new task(y, element, date, desciption);
+          archivedArray[rowindex].status=u;
+        }
+          redrawingtable(archivedArray);
+        }
+		}
+        edit = false;
+
+      } 
+      else if (id == 'demo3') {
+        document.getElementById("inputEmail").value = "";
+        document.getElementById("datepicker").value = "";
+        document.getElementById("textArea").value = "";
+
+      }
+
+    }
+	
+	function list(id) {
+
+      if (id == 'a') { //archive
+        if (state == "allTasks") { // from all tasks to archive
+          
+          for (var i = 1; i < completedArray.length; i++) {
+            if (allTasksArray[rowindex].id == completedArray[i].id) {
+              completedArray.splice(i, 1);
+            //  counterCompleted--;
+              document.getElementById("no3").innerHTML = completedArray.length-1;
+              break;
+            }
+          }
+          for (var i = 1; i < inprogressArray.length; i++) {
+
+            if (allTasksArray[rowindex].id== inprogressArray[i].id) {
+	
+              inprogressArray.splice(i, 1);
+            //  counterInprogress--;
+              document.getElementById("no2").innerHTML = inprogressArray.length-1;
+              break;
+            }
+          }
+
+          allTasksArray[rowindex].status = 'a';
+          var tmp = allTasksArray[rowindex];
+          archivedArray.push(tmp);
+         // counterArchived++;
+          document.getElementById("no4").innerHTML = archivedArray.length-1;
+          allTasksArray.splice(rowindex, 1);
+         // counterAlltasks--;
+          document.getElementById("no1").innerHTML = allTasksArray.length-1;
+           redrawingtable(allTasksArray);
+        } 
+        else if (state == "inProgress") { //from inprogress to archive
+          
+          for (var i = 1; i < allTasksArray.length; i++) {
+            if (inprogressArray[rowindex].id == allTasksArray[i].id) {
+              allTasksArray.splice(i, 1);
+             // counterAlltasks--;
+              document.getElementById("no1").innerHTML = allTasksArray.length-1;
+              break;
+            }
+          }
+          inprogressArray[rowindex].status = 'a';
+          archivedArray.push(inprogressArray[rowindex]);
+         // counterArchived++;
+          document.getElementById("no4").innerHTML =archivedArray.length-1;
+          inprogressArray.splice(rowindex, 1);
+        //  counterInprogress--;
+          document.getElementById("no2").innerHTML = inprogressArray.length-1;
+          redrawingtable(inprogressArray);
+
+
+        } 
+        else if (state == "completed") { // completed to archive
+          
+          for (var i = 1; i < allTasksArray.length; i++) {
+            if (completedArray[rowindex].id == allTasksArray[i].id) {
+              allTasksArray.splice(i, 1);
+             // counterAlltasks--;
+              document.getElementById("no1").innerHTML = allTasksArray.length-1;
+              break;
+            }
+          }
+          completedArray[rowindex].status = 'a';
+          archivedArray.push(completedArray[rowindex]);
+         // counterArchived++;
+          document.getElementById("no4").innerHTML = archivedArray.length-1;
+          completedArray.splice(rowindex, 1);
+        //  counterCompleted--;
+          document.getElementById("no3").innerHTML = completedArray.length-1;
+          redrawingtable(completedArray);
+
+        }
+
+      } else if (id == 'b') { //edit
+
+        if (state == "allTasks") { //edit all tasks
+          edit = true;
+          var element = allTasksArray[rowindex].name;
+          var des = allTasksArray[rowindex].desciption;
+          var date = allTasksArray[rowindex].date;
+
+          document.getElementById("inputEmail").value = element;
+          document.getElementById("datepicker").value = date;
+          document.getElementById("textArea").value = des;
+
+
+        } else if (state == "inProgress") { //edit  in progress
+
+          edit = true;
+          var element = inprogressArray[rowindex].name;
+          var des = inprogressArray[rowindex].desciption;
+          var date = inprogressArray[rowindex].date;
+
+          document.getElementById("inputEmail").value = element;
+          document.getElementById("datepicker").value = date;
+          document.getElementById("textArea").value = des;
+
+
+        } else if (state == "completed") { //edit completed
+
+          edit = true;
+          var element = completedArray[rowindex].name;
+          var des = completedArray[rowindex].desciption;
+          var date = completedArray[rowindex].date;
+
+          document.getElementById("inputEmail").value = element;
+          document.getElementById("datepicker").value = date;
+          document.getElementById("textArea").value = des;
+
+
+        } else if (state == "archived") { //edit archived
+
+          edit = true;
+          var element = archivedArray[rowindex].name;
+          var des = archivedArray[rowindex].desciption;
+          var date = archivedArray[rowindex].date;
+
+          document.getElementById("inputEmail").value = element;
+          document.getElementById("datepicker").value = date;
+          document.getElementById("textArea").value = des;
+
+
+        }
+
+
+      } else if (id == 'c') { //delete
+        if (state == "allTasks") { //delete from all tasks
+          
+
+          var result = confirm("Want to delete?");
+          if (result) {
+
+            for (var i = 1; i < completedArray.length; i++) {
+              if (allTasksArray[rowindex].id == completedArray[i].id) {
+                completedArray.splice(i, 1);
+             //   counterCompleted--;
+                document.getElementById("no3").innerHTML = completedArray.length-1;
+                break;
+              }
+            }
+            for (var i = 1; i < inprogressArray.length; i++) {
+              if (allTasksArray[rowindex].id == inprogressArray[i].id) {
+                inprogressArray.splice(i, 1);
+              //  counterInprogress--;
+                document.getElementById("no2").innerHTML = inprogressArray.length-1;
+                break;
+              }
+            }
+            allTasksArray.splice(rowindex, 1);
+           // counterAlltasks--;
+            document.getElementById("no1").innerHTML = allTasksArray.length-1;
+
+          }
+          redrawingtable(allTasksArray);
+        } else if (state == "inProgress") { // delete from in progress
+          var result = confirm("Want to delete?");
+          if (result) {
+
+            for (var i = 1; i < allTasksArray.length; i++) {
+              if (inprogressArray[rowindex].id == allTasksArray[i].id) {
+                allTasksArray.splice(i, 1);
+               // counterAlltasks--;
+                document.getElementById("no1").innerHTML = allTasksArray.length-1;
+                break;
+              }
+            }
+            inprogressArray.splice(rowindex, 1);
+          //  counterInprogress--;
+            document.getElementById("no2").innerHTML = inprogressArray.length-1;
+          }
+          redrawingtable(inprogressArray);
+
+        } else if (state == "completed") { // delete from completed
+          var result = confirm("Want to delete?");
+          if (result) {
+
+            for (var i = 1; i < allTasksArray.length; i++) {
+              if (completedArray[rowindex].id == allTasksArray[i].id) {
+                allTasksArray.splice(i, 1);
+               // counterAlltasks--;
+                document.getElementById("no1").innerHTML = allTasksArray.length-1;
+                break;
+              }
+            }
+            completedArray.splice(rowindex, 1);
+           // counterCompleted--;
+            document.getElementById("no3").innerHTML = completedArray.length-1;
+
+          }
+          redrawingtable(completedArray);
+
+        } else if (state == "archived") {
+          var result = confirm("Want to delete?");
+          if (result) {
+
+            archivedArray.splice(rowindex, 1);
+           // counterArchived--;
+            document.getElementById("no4").innerHTML = archivedArray.length-1;
+          }
+          redrawingtable(archivedArray);
+        }
+
+      }
+
+      
+      else if (id == 'd') { //completed
+        if (state == "allTasks") { // all tasks to completed
+          var flag = 0;
+          for (var j = 0; j < completedArray.length; j++) {
+            if (allTasksArray[rowindex].id == completedArray[j].id) {
+              flag = 1;
+              break;
+            }
+          }
+
+
+          if (flag == 0) {
+            
+            for (var i = 1; i < inprogressArray.length; i++) {
+              if (allTasksArray[rowindex].id == inprogressArray[i].id) {
+                inprogressArray.splice(i, 1);
+               // counterInprogress--;
+                document.getElementById("no2").innerHTML = inprogressArray.length-1;
+                break;
+              }
+            }
+             allTasksArray[rowindex].status = 'c';
+            completedArray.push(allTasksArray[rowindex]);
+           // counterCompleted++;
+            document.getElementById("no3").innerHTML = completedArray.length-1;
+         
+            redrawingtable(allTasksArray);
+          }
+        } else if (state == "inProgress") { //in progress to completed
+          var flag = 0;
+
+          for (var j = 0; j < completedArray.length; j++) {
+            if (inprogressArray[rowindex].id == completedArray[j].id) {
+              flag = 1;
+              break;
+            }
+          }
+
+          if (flag == 0) {
+
+            
+            for (var i = 1; i < allTasksArray.length; i++) {
+              if (inprogressArray[rowindex].id == allTasksArray[i].id) {
+                allTasksArray[i].status = 'c';
+                break;
+              }
+            }
+            inprogressArray[rowindex].status = 'c';
+            completedArray.push(inprogressArray[rowindex]);
+         //   counterCompleted++;
+            document.getElementById("no3").innerHTML = completedArray.length-1;
+           
+            inprogressArray.splice(rowindex, 1);
+          //  counterInprogress--;
+            document.getElementById("no2").innerHTML = inprogressArray.length-1;
+            redrawingtable(inprogressArray);
+          }
+        }
+      }
+
+    }
+
+   
+
+    function start(id) {
+
+      if (id == 'allTasks') {
+        state = "allTasks";
+        //$("#add").show();
+        redrawingtable(allTasksArray);
+
+      } else if (id == 'inProgress') {
+
+       // $("#add").hide();
+        state = "inProgress";
+        redrawingtable(inprogressArray);
+
+      } else if (id == 'completed') {
+        state = "completed";
+       // $("#add").hide();
+        redrawingtable(completedArray);
+      } else if (id == 'archived') {
+        //$("#add").hide();
+        state = "archived";
+
+        redrawingtable(archivedArray);
+      }
+
+    }
+
+
+	function sort(id) { 
+
+if (id == "byname") {
+
+if(state=="allTasks"){ //fdely lw strikethrough
+  allTasksArray.splice(0,1);
+ allTasksArray.sort(function(a, b){
+
+  if(a.name.toLowerCase() < b.name.toLowerCase()) return -1;
+  if(a.name.toLowerCase() > b.name.toLowerCase()) return 1;
+  return 0;
+
+})
+     var x = new task(0, "All TASKS", "","");
+allTasksArray.unshift(x);
+redrawingtable(allTasksArray);
+
+}
+
+else if(state=="inProgress"){
+
+  inprogressArray.splice(0,1);
+ inprogressArray.sort(function(a, b){
+
+  if(a.name.toLowerCase() < b.name.toLowerCase()) return -1;
+  if(a.name.toLowerCase() > b.name.toLowerCase()) return 1;
+  return 0;
+
+})
+ var x = new task(0, " IN PROGRESS", "","");
+inprogressArray.unshift(x);
+redrawingtable(inprogressArray);
+
+}
+else if(state=="completed"){
+  completedArray.splice(0,1);
+completedArray.sort(function(a, b){
+
+  if(a.name.toLowerCase() < b.name.toLowerCase()) return -1;
+  if(a.name.toLowerCase() > b.name.toLowerCase()) return 1;
+  return 0;
+
+})
+  var x = new task(0, " COMPLETED", "","");
+completedArray.unshift(x);
+redrawingtable(completedArray);
+
+}
+else if(state=="archived"){
+  archivedArray.splice(0,1);
+archivedArray.sort(function(a, b){
+
+  if(a.name.toLowerCase() < b.name.toLowerCase()) return -1;
+  if(a.name.toLowerCase() > b.name.toLowerCase()) return 1;
+  return 0;
+
+})
+ var x = new task(0, " ARCHIVED", "","");
+archivedArray.unshift(x);
+redrawingtable(archivedArray);
+
+}
+  
+      } 
+      else if (id == "bydate") {
+    if(state=="allTasks"){
+
+  for(var i=allTasksArray.length-1;i>0;i--){
+
+     if(allTasksArray[i].date==""){
+         var x=allTasksArray[i];
+         allTasksArray.splice(i,1);
+         allTasksArray.push(x);
+  }
+  }
+              allTasksArray.sort(function(a,b){
+              var c = new Date(a.date);
+              var d = new Date(b.date);
+              return c-d;
+                });
+           for(var i=allTasksArray.length-1;i>0;i--){
+             if(allTasksArray[i].status=='c'){
+                var x=allTasksArray[i];
+                 allTasksArray.splice(i,1);
+                allTasksArray.push(x);
+                     }
+                  }
+              redrawingtable(allTasksArray);
+            }
+           else if(state=="inProgress"){
+            for(var i=inprogressArray.length-1;i>0;i--){
+          if(inprogressArray[i].date==""){
+               var x=inprogressArray[i];
+               inprogressArray.splice(i,1);
+               inprogressArray.push(x);
+             
+  }
+  }
+             inprogressArray.sort(function(a,b){
+              var c = new Date(a.date);
+              var d = new Date(b.date);
+              return c-d;
+                });
+
+           for(var i=inprogressArray.length-1;i>0;i--){
+             if(inprogressArray[i].status=='c'){
+                var x=inprogressArray[i];
+                 inprogressArray.splice(i,1);
+                inprogressArray.push(x);
+                     }
+
+                     }
+              redrawingtable(inprogressArray);
+            }
+        else  if(state=="completed"){
+
+          for(var i=completedArray.length-1;i>0;i--){
+              if(completedArray[i].date==""){
+              var x=completedArray[i];
+               completedArray.splice(i,1);
+                  completedArray.push(x);
+                  
+  }
+
+  }
+             completedArray.sort(function(a,b){
+              var c = new Date(a.date);
+              var d = new Date(b.date);
+              return c-d;
+                });
+              redrawingtable(completedArray);
+            }
+       else if(state=="archived"){
+       for(var i=archivedArray.length-1;i>0;i--){
+           if(archivedArray[i].date==""){
+           var x=archivedArray[i];
+           archivedArray.splice(i,1);
+           archivedArray.push(x);
+  }
+
+  }
+              archivedArray.sort(function(a,b){
+              var c = new Date(a.date);
+              var d = new Date(b.date);
+              return c-d;
+                });
+              redrawingtable(archivedArray);
+            }
+ 
+      }
+
+    }
+	
+    function getid(obj) {
+      var indexf = $('#' + obj).closest("tr").index();
+
+      rowindex = indexf;
+    }
+    $(function() {
+      $("#datepicker").datepicker({
+        minDate: 0,
+
+      });
+    });
+</script>
+
+<style>
+.ui-datepicker {
+	background-color: #fff;
+	border: 1px solid #66AFE9;
+	border-radius: 4px;
+	box-shadow: 0 0 8px rgba(102,175,233,.6);
+	display: none;
+	margin-top: 4px;
+	padding: 10px;
+	width: 240px;
+}
+.ui-datepicker a,
+.ui-datepicker a:hover {
+	text-decoration: none;
+}
+.ui-datepicker a:hover,
+.ui-datepicker td:hover a {
+	color: #772953;
+	-webkit-transition: color 0.1s ease-in-out;
+	   -moz-transition: color 0.1s ease-in-out;
+	     -o-transition: color 0.1s ease-in-out;
+	        transition: color 0.1s ease-in-out;
+}
+.ui-datepicker .ui-datepicker-header {
+	margin-bottom: 4px;
+	text-align: center;
+}
+.ui-datepicker .ui-datepicker-title {
+	font-weight: 700;
+}
+.ui-datepicker .ui-icon {
+	display: none;
+}
+.ui-datepicker .ui-datepicker-calendar {
+  table-layout: fixed;
+	width: 100%;
+}
+.ui-datepicker .ui-datepicker-calendar th,
+.ui-datepicker .ui-datepicker-calendar td {
+	text-align: center;
+	padding: 4px 0;
+}
+.ui-datepicker .ui-datepicker-calendar td {
+	border-radius: 4px;
+	-webkit-transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out;
+	   -moz-transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out;
+	     -o-transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out;
+	        transition: background-color 0.1s ease-in-out, color 0.1s ease-in-out;
+}
+.ui-datepicker .ui-datepicker-calendar td:hover {
+	background-color: #eee;
+	cursor: pointer;
+}
+.ui-datepicker .ui-datepicker-calendar td a {
+	text-decoration: none;
+}
+.ui-datepicker .ui-datepicker-current-day {
+	background-color: #4289cc;
+}
+.ui-datepicker .ui-datepicker-current-day a {
+	color: #fff
+}
+.ui-datepicker .ui-datepicker-calendar .ui-datepicker-unselectable:hover {
+	background-color: #fff;
+	cursor: default;
+}
+
+.navbar-default {
+      background-color: rgb( 0, 0, 0);
+    }
+    
+    p.title {
+      font-family: Lucida Console;
+      font-size: 200%;
+      color: white;
+    }
+    
+    .col-md-3,
+    .col-md-9 {
+      height: 100vh;
+    }
+    
+    .panel-heading {
+      color: rgb(0, 0, 0);
+    }
+    
+    .panel > .panel-heading {
+      background-color: rgb(0, 0, 0);
+    }
+    
+    .panel-primary {
+      bottom: 160%;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .category-buttons {
+      float: center;
+    }
+    
+    .btn-group-vertical {
+      float: center;
+      width: 100%;
+    }
+    
+    #mytable {
+      width: 80%;
+	  table-layout:fixed;
+    }
+    
+    #datepicker {
+      z-index: 100000;
+      !important;
+    }
+    
+    th {
+      font-size: 150%;
+      font-family: Lucida Console;
+    }
+	 
+
+ 
+  td{
+	   word-wrap:break-word;
+  }
+   
+
+  td:data-toggle:tooltip-inner{
+	  white-space:pre-wrap;
+	max-width: 1%;
+	word-wrap:break-word;
+	  
+  }
+
+.tooltip-inner {
+	max-width: 1%;
+	word-wrap:break-word;
+}
+
+.dropdown{
+	display:none;
+}
+#test{
+font-size:100%;
+font-family: Lucida Console;
+ padding-right:10%;
+ max-width: 100%;
+	word-wrap:break-word;
+	!important;
+	
+
+}
+</style>
+
+<script>
+ function ajaxsubmit(){
+				
+        var data = {
+        allTasksArray:  allTasksArray,
+        inprogressArray: inprogressArray,
+        completedArray: completedArray,
+        archivedArray: archivedArray,
+        idbutton:idbutton,
+        idtask:idtask,
+        state:state,
+          };
+			
+         // alert(JSON.stringify(data));
+					$.ajax({
+						      type: 'POST',
+						      data: JSON.stringify(data),
+				          contentType: 'application/json',
+                  url: '/ajaxRequest',
+                  success: function(data) {
+                            console.log('success');
+                            console.log(JSON.stringify(data));
+                           // alert(data);
+                        }
+          });
+          
+        }
+</script>
+
+
+ 
+
+
+</head>
+
+<body>
+  
+
+
+<form action="/signout" method="POST">
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+
+        <a class="navbar-brand" >
+          <p class="title">2DOList
+          </p>
+        </a>
+    </div>
+    <ul class="nav navbar-nav navbar-right">
+    <li><p id="test" class="title" style="padding-right:10%; word-wrap:break-word;">welcome  </p><li>
+    <button type="submit" class="btn btn-danger btn-sm"  id="signout" >
+        <span class="glyphicon glyphicon-share" aria-hidden="true"></span>Sign out!
+      </button>
+	  
+     </ul>
+     
+
+
+    </div>
+  </nav>
+  
+
+   
+ 
+  </form>
+  
+
+
+
+  <div class="row">
+    <div class="col-md-3">
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <p style="font-size:40px ;  font-family:lucida console">Categories
+            <p>
+        </div>
+        <div class="panel-body">
+          <div class="btn-group-vertical" role="group" aria-label="...">
+
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default" id="allTasks" onclick="start(id);ajaxsubmit()">All Tasks
+                <span id="no1" class="badge">0</span></button>
+            </div>
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default" id="inProgress" onclick="start(id);ajaxsubmit()">In Progress
+                <span class="badge" id="no2">0</span></button>
+            </div>
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default" id="completed" onclick="start(id);ajaxsubmit()">Completed Tasks
+                <span class="badge" id="no3">0</span></button>
+            </div>
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default" id="archived" onclick="start(id);ajaxsubmit()">Archived
+                <span class="badge" id="no4">0</span></button>
+            </div>
+
+          </div>
+
+
+
+        </div>
+      </div>
+    </div>
+    <div class="col-md-9">
+
+      <nav class="navbar navbar-default">
+        <div class="container-fluid">
+          
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#"></a>
+          </div>
+
+         
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+            <ul class="nav navbar-nav navbar-right">
+
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-menu-hamburger" aria-hidden="true"></span>Sort <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li><a id="bydate" href="#" onmousedown="sort(id);ajaxsubmit()">By Date</a></li>
+                  <li><a id="byname" href="#" onmousedown="sort(id);ajaxsubmit()">By Name</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </nav>
+	  <table class="table table-striped table-hover " id="mytable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Task Name</th>
+            <th>Due Date</th>
+            <th></th>
+
+          </tr>
+        </thead>
+      
+      </table>
+
+     
+      <button type="button"  class="btn btn-warning" data-toggle="modal" id="add" data-target="#myModal">
+        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>Add Task
+      </button>
+      <br>
+      <button type="button"  class="btn btn-danger" onclick="godelete();ajaxsubmit()" style="display: none;" id="delete">
+        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>Delete Selected
+      </button>
+
+        
+   
+      <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+   
+	   <div class="modal-dialog" role="document">
+           <div class="modal-content">
+		   
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title" id="myModalLabel">New Task Form</h4>
+            </div>
+            <div class="modal-body">
+              <form class="form-horizontal">
+                <fieldset>
+                  <div class="form-group">
+                    <label class="col-lg-2 control-label">Task Name
+                      <span class="glyphicon glyphicon-asterisk" aria-hidden="true"></span>
+                    </label>
+                    <div class="col-lg-10">
+                      <input type="text" class="form-control" id="inputEmail" placeholder="Task Name">
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-lg-2 control-label">Task Description</label>
+                    <div class="col-lg-10">
+                      <textarea class="form-control" rows="3" id="textArea" placeholder="Task Description...."></textarea>
+                      <span class="help-block"> A Task Description may help you(: .</span>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-lg-12">
+                      <div class="form-group">
+                        <label class="control-label">Task Due-Date</label>
+                        <div class="input-group">
+                          <span class="input-group-addon">
+                          <span class="glyphicon glyphicon-calendar" aria-hidden="true"></span></span>
+                          <input type="text" id="datepicker" class="date-picker form-control" style="width:235px;">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </fieldset>
+              </form>
+
+            </div>
+            <div class="modal-footer">
+			
+              <button type="button" class="btn btn-default" data-dismiss="modal" onclick="fillingArrays(id)" id="demo3">Cancel</button>
+              <button type="button" class="btn btn-primary" data-dismiss="modal" id="demo2" onclick="fillingArrays(id); ajaxsubmit();">Add Task</button>
+            </div>
+          </div>
+            
+          </div>
+		 
+		
+      </div>
+
+    </div>
+
+
+  </div>
+ 
+
+
+ <script>
+  var still = true;
+ 
+ function copydelete(){
+	  if (state == "allTasks") { //delete from all tasks
+          
+
+         
+
+            for (var i = 1; i < completedArray.length; i++) {
+              if (allTasksArray[rowindex].id == completedArray[i].id) {
+                completedArray.splice(i, 1);
+              //  counterCompleted--;
+                document.getElementById("no3").innerHTML = completedArray.length-1;
+                break;
+              }
+            }
+            for (var i = 1; i < inprogressArray.length; i++) {
+              if (allTasksArray[rowindex].id == inprogressArray[i].id) {
+                inprogressArray.splice(i, 1);
+            //    counterInprogress--;
+                document.getElementById("no2").innerHTML = inprogressArray.length-1;
+                break;
+              }
+            }
+            allTasksArray.splice(rowindex, 1);
+           // counterAlltasks--;
+            document.getElementById("no1").innerHTML = allTasksArray.length-1;
+
+          
+           redrawingtable(allTasksArray);
+        } else if (state == "inProgress") { // delete from in progress
+         
+
+            for (var i = 1; i < allTasksArray.length; i++) {
+              if (inprogressArray[rowindex].id == allTasksArray[i].id) {
+                allTasksArray.splice(i, 1);
+              //  counterAlltasks--;
+                document.getElementById("no1").innerHTML = allTasksArray.length-1;
+                break;
+              }
+            }
+            inprogressArray.splice(rowindex, 1);
+           // counterInprogress--;
+            document.getElementById("no2").innerHTML =inprogressArray.length-1;
+          
+          redrawingtable(inprogressArray);
+
+        } else if (state == "completed") { // delete from completed
+         
+
+            for (var i = 1; i < allTasksArray.length; i++) {
+              if (completedArray[rowindex].id == allTasksArray[i].id) {
+                allTasksArray.splice(i, 1);
+               // counterAlltasks--;
+                document.getElementById("no1").innerHTML = allTasksArray.length-1;
+                break;
+              }
+            }
+            completedArray.splice(rowindex, 1);
+            //counterCompleted--;
+            document.getElementById("no3").innerHTML = completedArray.length-1;
+
+          
+          redrawingtable(completedArray);
+
+        } else if (state == "archived") {
+         
+
+            archivedArray.splice(rowindex, 1);
+           // counterArchived--;
+            document.getElementById("no4").innerHTML = archivedArray.length-1;
+          
+          redrawingtable(archivedArray);
+        }
+
+      }
+	 
+	 
+	 
+ 
+
+
+
+
+
+
+
+    function changebutton() {
+      if (still) {
+        document.getElementById("add").style.display = 'none';
+        document.getElementById("delete").style.display = 'block';
+      }
+
+
+    }
+
+    function dontchange() {
+      document.getElementById("add").style.display = 'block';
+      document.getElementById("delete").style.display = 'none';
+
+    }
+
+
+
+    var tempArray = [];
+    $('#mytable').click(function() {
+      var pass = false;
+      //window.alert("toz fekko");
+      tempArray = [];
+      $('tr').each(function() {
+        if ($(this).find('.basic-kpi-row').prop('checked')) {
+          //  doEnableButton = true;
+          //window.alert($(this).index());
+          rowindex = $(this).index();
+          tempArray.push(rowindex);
+          pass = true;
+
+        }
+
+
+      });
+
+      deletebuttonarray = [];
+      deletebuttonarray = tempArray.slice();
+      if (pass) {
+        changebutton();
+        
+      } else {
+        dontchange();
+      }
+
+    });
+
+    function godelete() {
+      var result = confirm("Want to delete?");
+      if (result) {
+     
+        deletebuttonarray.sort();
+        deletebuttonarray.reverse();
+
+        for (var i = 0; i < deletebuttonarray.length; i++) {
+          rowindex = (deletebuttonarray[i]);
+          copydelete();
+
+        }
+        dontchange();
+
+      } else {
+
+        deletebuttonarray = [];
+        dontchange();
+        $('tr').each(function() {
+          if ($(this).find('.basic-kpi-row').prop('checked')) {
+            $(this).find('.basic-kpi-row').attr('checked', false);
+
+          }
+
+
+        });
+
+      }
+    }
+    </script>
+</body>
+
+</html>

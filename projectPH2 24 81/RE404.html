@@ -1,0 +1,195 @@
+<!--<DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+<SCRIPT LANGUAGE='JavaScript'>
+        window.alert('ERROR! EMAIL ALREADY EXISTS!!!');
+        window.location.href='/Registeration.html'
+        </SCRIPT>
+</body>
+</html>-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TO DO LIST</title>
+ 
+
+    
+ 
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.12.0.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+
+    </script>
+
+  
+  
+<style>
+body{
+    background-color:#f5f5f5;
+}
+.form-signin
+{
+    max-width: 330px;
+    padding: 15px;
+    margin: 0 auto;
+}
+.form-signin .form-control
+{
+    position: relative;
+    font-size: 16px;
+    height: auto;
+    padding: 10px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+.form-signin .form-control:focus
+{
+    z-index: 2;
+}
+.form-signin input[type="text"]
+{
+    margin-bottom: -1px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.form-signin input[type="password"]
+{
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+.account-wall
+{
+    margin-top: 80px;
+    padding: 40px 0px 20px 0px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 10px 0 rgba(0, 0, 0, 0.16);
+}
+.login-title
+{
+    color: #555;
+    font-size: 22px;
+    font-weight: 400;
+    display: block;
+}
+.profile-img
+{
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 10px;
+    display: block;
+    -moz-border-radius: 50%;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+}
+.select-img
+{
+	border-radius: 50%;
+    display: block;
+    height: 75px;
+    margin: 0 30px 10px;
+    width: 75px;
+    -moz-border-radius: 50%;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+}
+.select-name
+{
+    display: block;
+    margin: 30px 10px 10px;
+}
+.logo-img
+{
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 10px;
+    display: block;
+    -moz-border-radius: 50%;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+}
+</style>
+<script>
+
+
+function checkForm(form)
+  {
+     
+	 if (/^\s*$/.test(form.username.value)){
+    alert("String contains 0 or more white-space character and nothing else.");
+	 form.username.focus();
+        return false; 
+     }
+    if(!(/^[a-zA-Z ]+$/.test(form.username.value))){
+	 alert("Error: Username must contain only letters!");
+        form.username.focus();
+        return false;
+	
+	
+	
+	}
+    if(form.password.value != "") {
+      if(form.password.value.length < 5 || form.password.value.length>15) {
+        alert("Error: Password must contain 5-15 characters!");
+        form.password.focus();
+        return false;
+      }
+    }
+    return true;
+  }
+  
+
+</script>
+
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-sm-6 col-md-4 col-md-offset-4">
+            <div class="account-wall">
+			<div class="alert alert-danger" role="alert">ERROR! EMAIL ALREADY EXISTS</div>
+		
+                <div id="my-tab-content" class="tab-content">
+
+						<div class="tab-pane active" id="register">
+							<form class="form-signin" onsubmit="return checkForm(this);" action="/register" method="POST" >
+								<input type="text" name="username" class="form-control" placeholder="User Name ..." required autofocus>             
+								<input type="email" name="email" class="form-control" placeholder="Emaill Address ..." required>
+								<input type="password" name="password" class="form-control" placeholder="Password ..." required>
+								<input type="submit" class="btn btn-lg btn-default btn-block" value="Sign Up" />
+							</form>
+							<div id="tabs" data-tabs="tabs">
+               			<p class="text-center"><a href="#login" data-toggle="tab">Have an Account?</a></p>
+              			</div>
+						</div>
+						
+						<div class="tab-pane" id="login">
+               		   
+               			<form class="form-signin" action="/signin" method="POST" onsubmit="return checkForm(this);">
+               				<input type="email" name="email" class="form-control" placeholder="Emaill Address ..." required>
+               				<input type="password" name="password"  class="form-control" placeholder="Password" required>
+               				<input type="submit" class="btn btn-lg btn-default btn-block" value="Sign In" />
+               			</form>
+               			<div id="tabs" data-tabs="tabs">
+               				<p class="text-center"><a href="#register" data-toggle="tab">Need an Account?</a></p>
+               				
+              				</div>
+						</div>
+						
+					</div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
